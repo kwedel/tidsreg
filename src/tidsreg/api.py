@@ -106,25 +106,27 @@ class TidsRegger:
         logger.debug(f"Number of registration rows={len(registration_rows.all())}")
         for i, row in enumerate(registration_rows.all(), 1):
             logger.debug(f"Row {i}")
-            project = re.search(
-                "[^0-9YDXA\s-]{2}.*", row.locator("td").first.text_content()
-            ).group()
-            logger.debug(project)
-            row.click()
-            dialog = RegistrationDialog(self.page)
-            start_time = datetime.time.fromisoformat(
-                dialog.start.get_attribute("value")
-            )
-            end_time = datetime.time.fromisoformat(dialog.slut.get_attribute("value"))
-            comment = dialog.kommentar.text_content()
-            registration = Registration(project, start_time, end_time, comment)
+            registration = self._get_registration_from_row(row)
             logger.debug(registration)
             registrations.append(registration)
-            dialog.annullere_button.click()
+
         return registrations
 
     def _get_registration_rows(self):
         return self.page.locator("#Splitter1_RightP_Content").locator(".ListElm")
+
+    def _get_registration_from_row(self, row):
+        logger.debug(f"Getting registration from row {row}")
+        project = re.search(
+            r"[^0-9YDXA\s-]{2}.*", row.locator("td").first.text_content()
+        ).group()
+        row.click()
+        dialog = RegistrationDialog(self.page)
+        start_time = datetime.time.fromisoformat(dialog.start.get_attribute("value"))
+        end_time = datetime.time.fromisoformat(dialog.slut.get_attribute("value"))
+        comment = dialog.kommentar.text_content()
+        dialog.annullere_button.click()
+        return Registration(project, start_time, end_time, comment)
 
     def _logged_in(self) -> None:
         self._ensure_browser()
