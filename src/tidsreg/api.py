@@ -1,8 +1,7 @@
 import logging
-import time
 from pathlib import Path
 
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import TimeoutError, sync_playwright
 
 from .exceptions import NotLoggedIn
 from .models import Registration
@@ -84,22 +83,15 @@ class TidsRegger:
             "row"
         )
         while True:
-            # if (
-            #   len(registration_rows.nth(1).wait_for(timeout=3000).all()) == 1
-            # ):  # The first row is the heading
-            #   break
             row = registration_rows.nth(1)
-            logger.debug("Waiting to see if row is available.")
-            start = time.perf_counter()
-            row.wait_for(timeout=3000)  # The first row is the heading
-            logging.debug(f"Waited for {time.perf_counter() - start} seconds.")
-            logger.debug("Trying to click {row}")
+            logger.debug(f"Trying to click {row}")
             try:
-                row.click()
+                row.click(timeout=2000)
                 self.page.frame_locator("#dialog-body").get_by_role(
                     "button", name="Slet"
                 ).click()
-            except AttributeError:
+                logger.debug("Row clicked")
+            except (AttributeError, TimeoutError):
                 logger.debug("No more rows to click.")
                 break
 
