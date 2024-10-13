@@ -3,7 +3,7 @@ import logging
 import re
 from pathlib import Path
 
-from playwright.sync_api import TimeoutError, sync_playwright
+from playwright.sync_api import Playwright, TimeoutError
 
 from .exceptions import NotLoggedIn
 from .models import Registration, RegistrationDialog
@@ -19,7 +19,10 @@ TIDSREG_TITLE = "Koncernservice Tidsregistrering Edge"
 class TidsRegger:
     """Class to automate the tedious task of registering time on projects"""
 
-    def __init__(self, state: Path | str = "state.json") -> None:
+    def __init__(
+        self, playwright: Playwright, state: Path | str = "state.json"
+    ) -> None:
+        self.playwright = playwright
         self.browser = None
         self.context = None
         self.page = None
@@ -27,22 +30,21 @@ class TidsRegger:
         self.state = Path(state)
 
     def log_in(self) -> None:
-        with sync_playwright() as p:
-            logger.info("Starting browser for log in.")
-            browser = p.chromium.launch(headless=False)
-            context = browser.new_context()
-            page = context.new_page()
-            page.goto(TIDSREG_URL)
-            page.get_by_placeholder("someone@example.com").click()
-            input("Log in to the browser and press enter in the terminal.")
-            if page.title() != TIDSREG_TITLE:
-                context.close()
-                browser.close()
-                raise NotLoggedIn("log in failed")
-            logger.info(f"Succesful log in. Saving state to {self.state}.")
-            context.storage_state(path=self.state)
+        logger.info("Starting browser for log in.")
+        browser = self.playwright.chromium.launch(headless=False)
+        context = browser.new_context()
+        page = context.new_page()
+        page.goto(TIDSREG_URL)
+        page.get_by_placeholder("someone@example.com").click()
+        input("Log in to the browser and press enter in the terminal.")
+        if page.title() != TIDSREG_TITLE:
             context.close()
             browser.close()
+            raise NotLoggedIn("log in failed")
+        logger.info(f"Succesful log in. Saving state to {self.state}.")
+        context.storage_state(path=self.state)
+        context.close()
+        browser.close()
 
     def close(self) -> None:
         if self.browser is None:
@@ -142,9 +144,8 @@ class TidsRegger:
             logger.info("Using existing browser.")
             return
 
-        playwright = sync_playwright().start()
         logging.info("Starting browser.")
-        self.browser = playwright.chromium.launch()
+        self.browser = self.playwright.chromium.launch()
         self.context = self.browser.new_context(storage_state="state.json")
         if not self.context.pages:
             self.page = self.context.new_page()
