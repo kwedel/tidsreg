@@ -1,7 +1,7 @@
 [project]
 name = "tidsreg"
 version = "0.1.0"
-description = "Add your description here"
+description = "Cli and module to register time in the municipality of Copenhagen"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
