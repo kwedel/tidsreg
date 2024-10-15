@@ -12,19 +12,47 @@ START_OF_DAY = datetime.time(8, 30)
 
 
 @click.group
+@click.version_option()
 def cli():
-    pass
+    """
+    Register time from the command line
+
+    """
+
+
+@cli.command(name="init")
+def init() -> None:
+    """
+    Install a browser for playwright, and start log in flow
+    """
+    raise NotImplementedError
 
 
 @cli.command(name="add")
 @click.argument("project", required=True)
-@click.option("-s", "--start", help="Start time of registration")
-@click.option("-e", "--end", help="End time of registration")
+@click.option(
+    "-s",
+    "--start",
+    help="Start time of registration, defaults to last end time or START_OF_DAY",
+)
+@click.option("-e", "--end", help="End time of registration, default to current time")
 @click.option("-m", "--comment", help="Message for registration")
 @click.option(
     "--dry-run", help="Just output planned changes", is_flag=True, default=False
 )
 def add(project, start, end, comment, dry_run) -> None:
+    """
+    Add a new registration to PROJECT
+
+    Uses case-insensitive substring matching to find the right PROJECT from your list of favorites
+
+    Times can be input as HH, HHMM or HH:MM
+
+    Example usage:
+
+        tidsreg add teammeeting --start 915 -m "Planning in small team"
+        tidsreg add frokost --start 11:30 --end 12
+    """
     with sync_playwright() as p:
         tr = TidsRegger(p)
 
