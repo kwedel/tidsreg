@@ -2,6 +2,7 @@ import datetime
 import logging
 import subprocess
 from pathlib import Path
+from random import choice
 from zoneinfo import ZoneInfo
 
 import click
@@ -9,6 +10,7 @@ from playwright.sync_api import sync_playwright
 
 from .api import TidsRegger
 from .exceptions import NotLoggedIn
+from .inspiration import OPMUNTRINGER
 from .models import Registration
 from .utils import str_to_time
 
@@ -139,6 +141,7 @@ def show():
                 click.echo(reg)
         else:
             click.echo("No registrations for today")
+            click.echo(choice(OPMUNTRINGER))  # noqa: S311
 
 
 @cli.command(name="clear")
