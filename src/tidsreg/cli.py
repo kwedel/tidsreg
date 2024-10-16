@@ -134,3 +134,14 @@ def show():
                 click.echo(reg)
         else:
             click.echo("No registrations for today")
+
+
+@cli.command(name="clear")
+def clear():
+    """
+    Delete all registrations for the day
+    """
+    click.echo("Deleting all current registrations")
+    with sync_playwright() as p:
+        tr = TidsRegger(p, BROWSER_STATE)
+        tr.clear_registrations()
