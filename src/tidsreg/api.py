@@ -106,7 +106,6 @@ class TidsRegger:
         registrations = []
         logger.info("Fetching all current registrations")
         registration_rows = self._get_registration_rows()
-        registration_rows.first.wait_for(timeout=2000)
         logger.debug(f"Number of registration rows={len(registration_rows.all())}")
         for i, row in enumerate(registration_rows.all(), 1):
             logger.debug(f"Row {i}")
@@ -152,7 +151,7 @@ class TidsRegger:
 
         logging.info("Starting browser.")
         self.browser = self.playwright.chromium.launch()
-        self.context = self.browser.new_context(storage_state="state.json")
+        self.context = self.browser.new_context(storage_state=self.state)
         if not self.context.pages:
             self.page = self.context.new_page()
         else:
