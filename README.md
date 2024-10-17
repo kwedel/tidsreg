@@ -5,25 +5,25 @@ The missing tool for registrering time in the municipality of Copenhagen.
 # Installation
 
 ```bash
-$ pip install tidsreg
+pip install tidsreg
 ```
 or
 ```bash
-$ uv tool install tidsreg
+uv tool install tidsreg
 ```
 
 # Getting started
 First, make sure that `tidsreg` is configured and log in through the browser.
 ```bash
-$ tidsreg init
-$ tidsreg login
+tidsreg init
+tidsreg login
 ```
 
 Then add, show or clear registrations:
 ```bash
-$ tidsreg show
-$ tidsreg add <projectname> -s 9 -e 1015 -m "A comment"
-$ tidsreg clear  # WILL DELETE YOUR REGISTRATIONS!
+tidsreg show
+tidsreg add <projectname> -s 9 -e 1015 -m "A comment"
+tidsreg clear  # WILL DELETE YOUR REGISTRATIONS!
 ```
 
 
