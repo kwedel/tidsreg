@@ -9,6 +9,7 @@ import click
 from playwright.sync_api import sync_playwright
 
 from .api import TidsRegger
+from .bulk import BulkRegistration, InvalidBulkRegistration
 from .cliutils import format_registration_for_cli
 from .exceptions import NotLoggedIn
 from .inspiration import OPMUNTRINGER
@@ -191,3 +192,22 @@ def clear(yes):
                 return
             else:
                 click.echo("Invalid input - try again.")
+
+
+@cli.command(name="bulk")
+@click.option("-f", "--filename", type=click.File("r"), required=True)
+def bulk(filename):
+    """
+    Register multiple items in one go
+    """
+    try:
+        bulk_reg = BulkRegistration.from_file(filename)
+    except InvalidBulkRegistration:
+        click.secho("Bulk registration file is not valid.", fg="red")
+        return
+    with sync_playwright() as p:
+        tr = TidsRegger(p, BROWSER_STATE)
+        click.echo(f"Creating {len(bulk_reg)} registrations")
+        with click.progressbar(bulk_reg) as bar:
+            for reg in bar:
+                tr.register_hours(reg)
