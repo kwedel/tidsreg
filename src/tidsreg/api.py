@@ -1,0 +1,135 @@
+import logging
+import time
+from pathlib import Path
+
+from playwright.sync_api import sync_playwright
+
+from .exceptions import NotLoggedIn
+from .models import Registration
+
+logger = logging.getLogger(__name__)
+
+TIDSREG_URL = (
+    "https://kktidsregistreringks-kksky.msappproxy.net/TimeManager.aspx?Elm=7470"
+)
+TIDSREG_TITLE = "Koncernservice Tidsregistrering Edge"
+
+
+class TidsRegger:
+    """Class to automate the tedious task of registering time on projects"""
+
+    def __init__(self, state: Path | str = "state.json") -> None:
+        self.browser = None
+        self.context = None
+        self.page = None
+        self.logged_in = False
+        self.state = Path(state)
+
+    def log_in(self) -> None:
+        with sync_playwright() as p:
+            logger.info("Starting browser for log in.")
+            browser = p.chromium.launch(headless=False)
+            context = browser.new_context()
+            page = context.new_page()
+            page.goto(TIDSREG_URL)
+            page.get_by_placeholder("someone@example.com").click()
+            input("Log in to the browser and press enter in the terminal.")
+            if page.title() != TIDSREG_TITLE:
+                context.close()
+                browser.close()
+                raise NotLoggedIn("log in failed")
+            logger.info(f"Succesful log in. Saving state to {self.state}.")
+            context.storage_state(path=self.state)
+            context.close()
+            browser.close()
+
+    def close(self) -> None:
+        if self.browser is None:
+            logger.info("Browser already closed.")
+            return
+        logger.info("Closing browser and context.")
+        self.context.close()
+        self.browser.close()
+        self.page = None
+        self.context = None
+        self.browser = None
+
+    def register_hours(self, registration: Registration) -> None:
+        self._ensure_browser()
+        logger.info(f"Registrering {registration}.")
+        logger.debug("Clicking project.")
+        self.page.get_by_role("link", name=registration.project).click()
+        logger.debug("Filling start time.")
+        dialog = self.page.frame_locator("#dialog-body")
+        dialog.locator("#NormalContainer_NormalTimePnl_NormalTimeStart").fill(
+            registration.start_time_str
+        )
+        logger.debug("Filling end time.")
+        dialog.locator("#NormalContainer_NormalTimePnl_NormalTimeEnd").fill(
+            registration.end_time_str
+        )
+
+        if registration.comment:
+            logger.debug("Filling comment.")
+            dialog.get_by_role("textbox", name="Til personligt notat").fill(
+                registration.comment
+            )
+        logger.debug("Clicking OK.")
+        dialog.get_by_role("button", name="Ok").click()
+
+    def clear_registrations(self):
+        self._ensure_browser()
+        logger.info("Deleting all registrations.")
+        registration_rows = self.page.locator("#Splitter1_RightP_Content").get_by_role(
+            "row"
+        )
+        while True:
+            # if (
+            #   len(registration_rows.nth(1).wait_for(timeout=3000).all()) == 1
+            # ):  # The first row is the heading
+            #   break
+            row = registration_rows.nth(1)
+            logger.debug("Waiting to see if row is available.")
+            start = time.perf_counter()
+            row.wait_for(timeout=3000)  # The first row is the heading
+            logging.debug(f"Waited for {time.perf_counter() - start} seconds.")
+            logger.debug("Trying to click {row}")
+            try:
+                row.click()
+                self.page.frame_locator("#dialog-body").get_by_role(
+                    "button", name="Slet"
+                ).click()
+            except AttributeError:
+                logger.debug("No more rows to click.")
+                break
+
+    def _logged_in(self) -> None:
+        self._ensure_browser()
+        logger.debug(f"{self.page.title() = !r}")
+        return self.page.title() == TIDSREG_TITLE
+
+    def _ensure_browser(self) -> None:
+        if self.browser is None:
+            self._start_browser()
+
+    def _start_browser(self) -> None:
+        if not self.state.exists():
+            self.close()
+            raise NotLoggedIn("no state is saved from log in. Run .log_in()")
+
+        if self.browser is not None:
+            logger.info("Using existing browser.")
+            return
+
+        playwright = sync_playwright().start()
+        logging.info("Starting browser.")
+        self.browser = playwright.chromium.launch()
+        self.context = self.browser.new_context(storage_state="state.json")
+        if not self.context.pages:
+            self.page = self.context.new_page()
+        else:
+            self.page = self.context.pages[0]
+        self.page.goto(TIDSREG_URL)
+        if not self._logged_in():
+            self.close()
+            raise NotLoggedIn("browser not logged in. run .log_in()")
