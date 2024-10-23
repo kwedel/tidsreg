@@ -135,7 +135,12 @@ def show():
         tr = TidsRegger(p, BROWSER_STATE)
 
         click.echo("Finding all registrations for today.\n")
-        registrations = tr.get_registrations()
+        try:
+            registrations = tr.get_registrations()
+        except NotLoggedIn:
+            click.echo('Not logged in. Call "tidsreg login"')
+            exit()
+
         if registrations:
             for reg in registrations:
                 click.echo(reg)
