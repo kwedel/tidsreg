@@ -79,3 +79,17 @@ def add(project, start, end, comment, dry_run) -> None:
             click.echo("Dry run - no changes made")
             return
         tr.register_hours(registration)
+
+
+@cli.command(name="show")
+def show():
+    """
+    Show all current registrations
+    """
+    with sync_playwright() as p:
+        tr = TidsRegger(p)
+
+        click.echo("Finding all registrations for today.\n")
+        registrations = tr.get_registrations()
+        for reg in registrations:
+            click.echo(reg)
