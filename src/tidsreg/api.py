@@ -1,9 +1,10 @@
 import datetime
 import logging
+import os
 import re
 from pathlib import Path
 
-from playwright.sync_api import Playwright, TimeoutError
+from playwright.sync_api import Playwright, TimeoutError, expect
 
 from .exceptions import NotLoggedIn
 from .models import Registration, RegistrationDialog
@@ -27,19 +28,47 @@ class TidsRegger:
         self.logged_in = False
         self.state = Path(state)
 
-    def log_in(self) -> None:
+    def log_in(self, headless=False) -> None:
         """Log in interactively"""
+        username = os.getenv("TIDSREG_USERNAME")
+        password = os.getenv("TIDSREG_PASSWORD")
+        if headless:
+            logger.info("Preparing to log in headless")
+            if username is None or password is None:
+                raise NotLoggedIn(
+                    "provide TIDSREG_USERNAME and TIDSREG_PASSWORD to use headless login"
+                )
+
         logger.info("Starting browser for log in.")
-        browser = self.playwright.chromium.launch(headless=False)
+        browser = self.playwright.chromium.launch(headless=headless)
         context = browser.new_context()
         page = context.new_page()
         page.goto(TIDSREG_URL)
-        page.get_by_placeholder("someone@example.com").click()
-        input("Log in to the browser and press enter in the terminal.")
-        if page.title() != TIDSREG_TITLE:
+        if page.title() == TIDSREG_TITLE:
+            logger.info("Already logged in.")
+            return
+        if username:
+            logger.debug("Filling username")
+            page.get_by_placeholder("someone@example.com").fill(username)
+            logger.debug("Clicking next")
+            page.get_by_role("button", name="Next").click()
+            if password:
+                logger.debug("Filling password")
+                page.get_by_placeholder("Password").fill(password)
+                logger.debug("Clicking sign in")
+                page.get_by_role("button", name="Sign in").click()
+                print(
+                    f'Authenticate with this number: {page.locator(".display-sign-container").text_content()}'
+                )
+        input("Log in and press enter in the terminal.")
+        try:
+            logger.debug("Waiting for page to go to tidsregistrering")
+            expect(page).to_have_title(TIDSREG_TITLE)
+        except Exception as e:
+            logger.debug(f"Something went wrong. Page is {page.title()!r}.")
             context.close()
             browser.close()
-            raise NotLoggedIn("log in failed")
+            raise NotLoggedIn("log in failed") from e
         logger.info(f"Succesful log in. Saving state to {self.state}.")
         context.storage_state(path=self.state)
         context.close()
