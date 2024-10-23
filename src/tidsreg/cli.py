@@ -153,11 +153,37 @@ def show():
 
 
 @cli.command(name="clear")
-def clear():
+@click.option(
+    "-y",
+    "--yes",
+    help="Delete without asking for confirmation",
+    is_flag=True,
+    default=False,
+)
+def clear(yes):
     """
     Delete all registrations for the day
     """
-    click.echo("Deleting all current registrations")
     with sync_playwright() as p:
         tr = TidsRegger(p, BROWSER_STATE)
-        tr.clear_registrations()
+        regs = tr.get_registrations()
+        if not regs:
+            click.echo("You don't have any registrations for today.")
+            return
+        click.echo(f"Deleting {len(regs)} registrations.")
+        if yes:
+            tr.clear_registrations()
+            return
+        while True:
+            click.echo("Continue? (y or n) ", nl=False)
+            c = click.getchar()
+            click.echo()
+            if c == "y":
+                tr.clear_registrations()
+                click.echo("Registrations deleted.")
+                return
+            elif c == "n":
+                click.echo("Abort!")
+                return
+            else:
+                click.echo("Invalid input - try again.")
