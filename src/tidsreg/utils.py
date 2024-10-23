@@ -15,3 +15,9 @@ def str_to_time(time: str) -> datetime.time:
         return datetime.time(int(time))
     if len(time) >= 3:  # '830, 915
         return datetime.time(int(time[:-2]), int(time[-2:]))
+
+
+def truncate_string(text: str, length: int | None) -> str:
+    if length is None or len(text) <= length:
+        return text
+    return text[: length - 3] + "..."

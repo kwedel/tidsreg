@@ -1,6 +1,6 @@
 import datetime
 
-from tidsreg.utils import str_to_time
+from tidsreg.utils import str_to_time, truncate_string
 
 
 def test_str_to_time():
@@ -16,3 +16,13 @@ def test_str_to_time():
     ]
     for input_string, result in cases:
         assert str_to_time(input_string) == result
+
+
+def test_truncation():
+    text = "This is a long text"  # length 19
+
+    assert truncate_string(text, None) == text
+    assert truncate_string(text, 100) == text
+    assert truncate_string(text, 19) == text
+    assert truncate_string(text, 18) == "This is a long ..."
+    assert truncate_string(text, 6) == "Thi..."

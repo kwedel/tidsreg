@@ -9,6 +9,7 @@ import click
 from playwright.sync_api import sync_playwright
 
 from .api import TidsRegger
+from .cliutils import format_registration_for_cli
 from .exceptions import NotLoggedIn
 from .inspiration import OPMUNTRINGER
 from .models import Registration
@@ -142,8 +143,10 @@ def show():
             exit()
 
         if registrations:
+            click.echo(f"You currently have {len(registrations)} for today.")
+            click.echo("-" * 30)
             for reg in registrations:
-                click.echo(reg)
+                click.echo(format_registration_for_cli(reg))
         else:
             click.echo("No registrations for today")
             click.echo(choice(OPMUNTRINGER))  # noqa: S311
