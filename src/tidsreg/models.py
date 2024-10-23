@@ -25,6 +25,7 @@ class Registration:
         return self._format_time(self.end_time)
 
     def _format_time(self, time):
+        """Format datetime as a string in the form HH:MM"""
         return f"{time.hour:02}:{time.minute:02}"
 
     def __lt__(self, other):
