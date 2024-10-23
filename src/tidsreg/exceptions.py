@@ -4,3 +4,7 @@ class NotLoggedIn(Exception):
 
 class InvalidBulkRegistration(Exception):
     pass
+
+
+class InvalidRegistration(Exception):
+    pass
