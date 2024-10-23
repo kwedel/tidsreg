@@ -26,6 +26,7 @@ dev-dependencies = [
 [tool.ruff.lint]
 select = ["F","E","I","B","S","DTZ","SIM", "RUF"]
 ignore = ["E501"]
+allowed-confusables = ["–"]
 
 [tool.ruff.lint.extend-per-file-ignores]
 "tests/**/*.py" = [
