@@ -57,13 +57,17 @@ def init() -> None:
 
 
 @cli.command(name="login")
-def login() -> None:
+@click.option("--headless", help="Login without openeing the browser GUI", is_flag=True)
+def login(headless) -> None:
     """
     Interactively log in to tidsreg
     """
-    with sync_playwright() as p:
-        tr = TidsRegger(p, BROWSER_STATE)
-        tr.log_in()
+    try:
+        with sync_playwright() as p:
+            tr = TidsRegger(p, BROWSER_STATE)
+            tr.log_in(headless=headless)
+    except NotLoggedIn:
+        click.echo("Login failed.")
 
 
 @cli.command(name="add")
