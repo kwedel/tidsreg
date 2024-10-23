@@ -147,7 +147,7 @@ def show():
             exit()
 
         if registrations:
-            click.echo(f"You currently have {len(registrations)} for today.")
+            click.echo(f"You currently have {len(registrations)} registrations today.")
             click.echo("-" * 30)
             for reg in registrations:
                 click.echo(format_registration_for_cli(reg))
