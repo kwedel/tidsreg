@@ -10,9 +10,7 @@ from .models import Registration, RegistrationDialog
 
 logger = logging.getLogger(__name__)
 
-TIDSREG_URL = (
-    "https://kktidsregistreringks-kksky.msappproxy.net/TimeManager.aspx?Elm=7470"
-)
+TIDSREG_URL = "https://tidsregks.kk.dk/"
 TIDSREG_TITLE = "Koncernservice Tidsregistrering Edge"
 
 
