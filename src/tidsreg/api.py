@@ -1,10 +1,12 @@
+import datetime
 import logging
+import re
 from pathlib import Path
 
 from playwright.sync_api import TimeoutError, sync_playwright
 
 from .exceptions import NotLoggedIn
-from .models import Registration
+from .models import Registration, RegistrationDialog
 
 logger = logging.getLogger(__name__)
 
@@ -95,11 +97,29 @@ class TidsRegger:
 
     def get_registrations(self) -> list[Registration]:
         self._ensure_browser()
+        registrations = []
         logger.info("Fetching all current registrations")
         registration_rows = self._get_registration_rows()
-        logger.debug(f"Number for registration rows={len(registration_rows.all())}")
-        for row in registration_rows.all():
-            logger.debug(row.text_content())
+        registration_rows.first.wait_for(timeout=2000)
+        logger.debug(f"Number of registration rows={len(registration_rows.all())}")
+        for i, row in enumerate(registration_rows.all(), 1):
+            logger.debug(f"Row {i}")
+            project = re.search(
+                "[^0-9YDXA\s-]{2}.*", row.locator("td").first.text_content()
+            ).group()
+            logger.debug(project)
+            row.click()
+            dialog = RegistrationDialog(self.page)
+            start_time = datetime.time.fromisoformat(
+                dialog.start.get_attribute("value")
+            )
+            end_time = datetime.time.fromisoformat(dialog.slut.get_attribute("value"))
+            comment = dialog.kommentar.text_content()
+            registration = Registration(project, start_time, end_time, comment)
+            logger.debug(registration)
+            registrations.append(registration)
+            dialog.annullere_button.click()
+        return registrations
 
     def _get_registration_rows(self):
         return self.page.locator("#Splitter1_RightP_Content").locator(".ListElm")
