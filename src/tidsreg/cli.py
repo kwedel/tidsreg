@@ -1,4 +1,5 @@
 import datetime
+import logging
 import subprocess
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -27,13 +28,17 @@ BROWSER_STATE = user_dir() / "browser_state.json"
 
 @click.group
 @click.version_option()
-def cli():
+@click.option("-v", "--verbose", count=True)
+def cli(verbose):
     """
     Register time from the command line
 
     Run `tidsreg init` to make inital setup
 
     """
+    loglevel = {1: logging.INFO, 2: logging.DEBUG}
+    if verbose:
+        logging.basicConfig(level=loglevel[verbose])
 
 
 @cli.command(name="init")
