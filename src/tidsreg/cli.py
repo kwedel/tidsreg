@@ -9,6 +9,7 @@ import click
 from playwright.sync_api import sync_playwright
 
 from .api import TidsRegger
+from .bulk import BulkRegistration
 from .cliutils import format_registration_for_cli
 from .exceptions import NotLoggedIn
 from .inspiration import OPMUNTRINGER
@@ -191,3 +192,15 @@ def clear(yes):
                 return
             else:
                 click.echo("Invalid input - try again.")
+
+
+@cli.command(name="bulk")
+@click.option("-f", "--filename", type=click.File("r"))
+def bulk(filename):
+    """
+    Register multiple items in one go
+    """
+    bulk_reg = BulkRegistration.from_file(filename)
+    click.echo(bulk_reg)
+    for reg in bulk_reg:
+        click.echo(reg)
