@@ -30,6 +30,7 @@ class TidsRegger:
         self.state = Path(state)
 
     def log_in(self) -> None:
+        """Log in interactively"""
         logger.info("Starting browser for log in.")
         browser = self.playwright.chromium.launch(headless=False)
         context = browser.new_context()
@@ -58,6 +59,7 @@ class TidsRegger:
         self.browser = None
 
     def register_hours(self, registration: Registration) -> None:
+        """Make a new registration"""
         self._ensure_browser()
         logger.info(f"Registrering {registration}.")
         logger.debug("Clicking project.")
@@ -81,6 +83,7 @@ class TidsRegger:
         dialog.get_by_role("button", name="Ok").click()
 
     def clear_registrations(self):
+        """Delete all current registrations"""
         self._ensure_browser()
         logger.info("Deleting all registrations.")
         registration_rows = self._get_registration_rows()
@@ -98,6 +101,7 @@ class TidsRegger:
                 break
 
     def get_registrations(self) -> list[Registration]:
+        """Get all current registrations"""
         self._ensure_browser()
         registrations = []
         logger.info("Fetching all current registrations")
