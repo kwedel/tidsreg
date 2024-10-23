@@ -79,11 +79,9 @@ class TidsRegger:
     def clear_registrations(self):
         self._ensure_browser()
         logger.info("Deleting all registrations.")
-        registration_rows = self.page.locator("#Splitter1_RightP_Content").get_by_role(
-            "row"
-        )
+        registration_rows = self._get_registration_rows()
         while True:
-            row = registration_rows.nth(1)
+            row = registration_rows.first
             logger.debug(f"Trying to click {row}")
             try:
                 row.click(timeout=2000)
@@ -94,6 +92,17 @@ class TidsRegger:
             except (AttributeError, TimeoutError):
                 logger.debug("No more rows to click.")
                 break
+
+    def get_registrations(self) -> list[Registration]:
+        self._ensure_browser()
+        logger.info("Fetching all current registrations")
+        registration_rows = self._get_registration_rows()
+        logger.debug(f"Number for registration rows={len(registration_rows.all())}")
+        for row in registration_rows.all():
+            logger.debug(row.text_content())
+
+    def _get_registration_rows(self):
+        return self.page.locator("#Splitter1_RightP_Content").locator(".ListElm")
 
     def _logged_in(self) -> None:
         self._ensure_browser()
