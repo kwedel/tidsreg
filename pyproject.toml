@@ -1,6 +1,6 @@
 [project]
 name = "tidsreg"
-version = "0.3.2"
+version = "0.4.0"
 authors = [{name="Kåre Obel Wedel", email="kaarewj@gmail.com"}]
 description = "Cli and module to register time in the municipality of Copenhagen"
 readme = "README.md"
