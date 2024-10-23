@@ -22,6 +22,9 @@ class Registration:
     def _format_time(self, time):
         return f"{time.hour:02}:{time.minute:02}"
 
+    def __lt__(self, other):
+        return self.start_time < other.start_time
+
 
 class RegistrationDialog:
     """Pop-up registration dialog"""
