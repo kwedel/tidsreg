@@ -1,4 +1,5 @@
 import datetime
+from zoneinfo import ZoneInfo
 
 import click
 from playwright.sync_api import sync_playwright
@@ -38,7 +39,11 @@ def add(project, start, end, comment, dry_run) -> None:
         else:
             start_time = str_to_time(start)
 
-        end_time = datetime.datetime.now().time() if end is None else str_to_time(end)  # noqa: DTZ005
+        end_time = (
+            datetime.datetime.now(ZoneInfo("localtime")).time()
+            if end is None
+            else str_to_time(end)
+        )
 
         registration = Registration(project, start_time, end_time, comment)
         click.echo(f"Creating registration {registration}")
