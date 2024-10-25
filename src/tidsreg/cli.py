@@ -80,7 +80,7 @@ def login(headless) -> None:
     help="Start time of registration, defaults to last end time or START_OF_DAY",
 )
 @click.option("-e", "--end", help="End time of registration, default to current time")
-@click.option("-m", "--comment", help="Message for registration")
+@click.option("-m", "--comment", help="Message for registration", default="")
 @click.option(
     "--dry-run", help="Just output planned changes", is_flag=True, default=False
 )
