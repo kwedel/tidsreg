@@ -1,6 +1,7 @@
 import datetime
 
-from tidsreg.utils import str_to_time, truncate_string
+from tidsreg.models import Registration
+from tidsreg.utils import registration_length, str_to_time, truncate_string
 
 
 def test_str_to_time():
@@ -26,3 +27,18 @@ def test_truncation():
     assert truncate_string(text, 19) == text
     assert truncate_string(text, 18) == "This is a long ..."
     assert truncate_string(text, 6) == "Thi..."
+
+
+def test_registration_length():
+    reg1 = Registration(
+        "project", start_time=datetime.time(10), end_time=datetime.time(11)
+    )
+    assert registration_length(reg1) == datetime.timedelta(hours=1)
+    reg2 = Registration(
+        "project", start_time=datetime.time(10), end_time=datetime.time(10, 30)
+    )
+    assert registration_length(reg2) == datetime.timedelta(minutes=30)
+
+    total_time = registration_length(reg1) + registration_length(reg2)
+
+    assert total_time == datetime.timedelta(hours=1.5)

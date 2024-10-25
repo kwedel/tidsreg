@@ -1,5 +1,7 @@
 import datetime
 
+from .models import Registration
+
 
 def skip_n(it, n=1):
     """Skip n elements in iterator"""
@@ -21,3 +23,14 @@ def truncate_string(text: str, length: int | None) -> str:
     if length is None or len(text) <= length:
         return text
     return text[: length - 3] + "..."
+
+
+def registration_length(reg: Registration) -> datetime.timedelta:
+    return datetime.timedelta(
+        minutes=time_to_total_minutes(reg.end_time)
+        - time_to_total_minutes(reg.start_time)
+    )
+
+
+def time_to_total_minutes(t: datetime.time) -> int:
+    return t.hour * 60 + t.minute

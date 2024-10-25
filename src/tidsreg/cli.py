@@ -14,9 +14,10 @@ from .cliutils import format_registration_for_cli
 from .exceptions import NotLoggedIn
 from .inspiration import OPMUNTRINGER
 from .models import Registration
-from .utils import str_to_time
+from .utils import registration_length, str_to_time
 
 START_OF_DAY = datetime.time(8, 30)
+AVG_WORKDAY_HOURS = 7.4
 
 APP_NAME = "tidsreg"
 
@@ -140,21 +141,43 @@ def show():
     with sync_playwright() as p:
         tr = TidsRegger(p, BROWSER_STATE)
 
-        click.echo("Finding all registrations for today.\n")
+        click.secho("Finding all registrations for today...\n", dim=True)
         try:
             registrations = tr.get_registrations()
         except NotLoggedIn:
             click.echo('Not logged in. Call "tidsreg login"')
             exit()
 
-        if registrations:
-            click.echo(f"You currently have {len(registrations)} registrations today.")
-            click.echo("-" * 30)
-            for reg in registrations:
-                click.echo(format_registration_for_cli(reg))
-        else:
+        if not registrations:
             click.echo("No registrations for today")
             click.echo(choice(OPMUNTRINGER))  # noqa: S311
+            return
+
+        click.secho(f'{"Time":<14}{"Project":<53}Comment')
+        click.echo("-" * 115)
+        for reg in registrations:
+            click.echo(format_registration_for_cli(reg))
+        click.echo("-" * 115)
+
+        # Find total registered time
+        registered_worktime = sum(
+            (registration_length(reg) for reg in registrations),
+            start=datetime.timedelta(0),
+        )
+        worktime_color = (
+            "green"
+            if registered_worktime >= datetime.timedelta(hours=AVG_WORKDAY_HOURS)
+            else "red"
+        )
+        hours, remainder = divmod(registered_worktime.seconds, 3600)
+        minutes, _ = divmod(remainder, 60)
+        click.echo()
+        click.secho(
+            f"You currently have {len(registrations)} registration(s) today totalling ",
+            nl=False,
+            dim=True,
+        )
+        click.secho(f"{hours} hours and {minutes} minutes", fg=worktime_color, dim=True)
 
 
 @cli.command(name="clear")
