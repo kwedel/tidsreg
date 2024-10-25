@@ -135,14 +135,25 @@ def add(project, start, end, comment, dry_run) -> None:
 
 
 @cli.command(name="show")
-def show():
+@click.option(
+    "-d",
+    "--date",
+    type=click.DateTime(formats=["%Y-%m-%d"]),
+    default=str(datetime.datetime.now(ZoneInfo("localtime").date())),
+)
+def show(date):
     """
     Show all current registrations
     """
+    name_of_date = (
+        "today"
+        if date.date() == datetime.datetime.now(ZoneInfo("localtime")).date()
+        else date.date()
+    )
     with sync_playwright() as p:
         tr = TidsRegger(p, BROWSER_STATE)
-
-        click.secho("Finding all registrations for today...\n", dim=True)
+        tr.goto_date(date.date())
+        click.secho(f"Finding all registrations for {name_of_date}...\n", dim=True)
         try:
             registrations = tr.get_registrations()
         except NotLoggedIn:
