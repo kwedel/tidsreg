@@ -82,9 +82,15 @@ def login(headless) -> None:
 @click.option("-e", "--end", help="End time of registration, default to current time")
 @click.option("-m", "--comment", help="Message for registration", default="")
 @click.option(
+    "-d",
+    "--date",
+    type=click.DateTime(formats=["%Y-%m-%d"]),
+    default=str(today()),
+)
+@click.option(
     "--dry-run", help="Just output planned changes", is_flag=True, default=False
 )
-def add(project, start, end, comment, dry_run) -> None:
+def add(project, start, end, comment, date, dry_run) -> None:
     """
     Add a new registration to PROJECT
 
@@ -99,7 +105,7 @@ def add(project, start, end, comment, dry_run) -> None:
     """
     with sync_playwright() as p:
         tr = TidsRegger(p, BROWSER_STATE)
-
+        tr.goto_date(date.date())
         # Get last end time if no start time is provided
         if start is None:
             click.secho("Getting start time from previous registrations", dim=True)
@@ -157,6 +163,9 @@ def show(date):
             exit()
 
         if not registrations:
+            if name_of_date != "today":
+                click.echo(f"No registrations for {date.date()}")
+                return
             click.echo("No registrations for today")
             click.echo(choice(OPMUNTRINGER))  # noqa: S311
             return
@@ -190,23 +199,30 @@ def show(date):
 
 @cli.command(name="clear")
 @click.option(
+    "-d",
+    "--date",
+    type=click.DateTime(formats=["%Y-%m-%d"]),
+    default=str(today()),
+)
+@click.option(
     "-y",
     "--yes",
     help="Delete without asking for confirmation",
     is_flag=True,
     default=False,
 )
-def clear(yes):
+def clear(date, yes):
     """
     Delete all registrations for the day
     """
     with sync_playwright() as p:
         tr = TidsRegger(p, BROWSER_STATE)
+        tr.goto_date(date.date())
         regs = tr.get_registrations()
         if not regs:
-            click.echo("You don't have any registrations for today.")
+            click.echo("You don't have any registrations for {date.date()}.")
             return
-        click.echo(f"Deleting {len(regs)} registrations.")
+        click.echo(f"Deleting {len(regs)} registrations for {date.date()}.")
         if yes:
             tr.clear_registrations()
             return
@@ -227,7 +243,13 @@ def clear(yes):
 
 @cli.command(name="bulk")
 @click.option("-f", "--filename", type=click.File("r"), required=True)
-def bulk(filename):
+@click.option(
+    "-d",
+    "--date",
+    type=click.DateTime(formats=["%Y-%m-%d"]),
+    default=str(today()),
+)
+def bulk(filename, date):
     """
     Register multiple items in one go
     """
@@ -238,6 +260,7 @@ def bulk(filename):
         return
     with sync_playwright() as p:
         tr = TidsRegger(p, BROWSER_STATE)
+        tr.goto_date(date.date())
         click.echo(f"Creating {len(bulk_reg)} registrations")
         with click.progressbar(bulk_reg) as bar:
             for reg in bar:
