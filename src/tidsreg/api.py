@@ -2,6 +2,7 @@ import datetime
 import logging
 import os
 import re
+import time
 from pathlib import Path
 
 from playwright.sync_api import Playwright, TimeoutError, expect
@@ -141,6 +142,21 @@ class TidsRegger:
             registrations.append(registration)
 
         return registrations
+
+    def goto_date(self, date: datetime.date) -> None:
+        self._ensure_browser()
+        logger.info(f"Changing date to {date}")
+        logger.debug("Filling date-field")
+        self.page.locator("#TxtToolbarDate").fill(
+            f"{date.day}-{date.month}-{date.year}"
+        )
+        logger.debug("Removing focus")
+        self.page.locator("#TxtToolbarDate").blur()
+        logger.debug("Waiting for update to be finished")
+        start_time = time.perf_counter()
+        expect(self.page.locator("#UpdateProgress1")).to_be_hidden()
+        expect(self.page.locator("#StatusPane")).to_contain_text("Fleksbalance")
+        logger.debug(f"Waiting finished in {time.perf_counter() - start_time}")
 
     def _get_registration_rows(self):
         return self.page.locator("#Splitter1_RightP_Content").locator(".ListElm")
