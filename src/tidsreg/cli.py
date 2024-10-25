@@ -102,11 +102,11 @@ def add(project, start, end, comment, dry_run) -> None:
 
         # Get last end time if no start time is provided
         if start is None:
-            click.echo("Getting start time from previous registrations")
+            click.secho("Getting start time from previous registrations", dim=True)
             try:
                 previous_registrations = tr.get_registrations()
             except NotLoggedIn:
-                click.echo('Not logged in. Call "tidsreg login"')
+                click.secho('Not logged in. Call "tidsreg login"', fg="red")
                 exit()
             if not previous_registrations:
                 start_time = START_OF_DAY
@@ -122,7 +122,8 @@ def add(project, start, end, comment, dry_run) -> None:
         )
 
         registration = Registration(project, start_time, end_time, comment)
-        click.echo(f"Creating registration {registration}")
+        click.echo("Creating registration:")
+        click.echo(format_registration_for_cli(registration))
         if dry_run:
             click.echo("Dry run - no changes made")
             return
