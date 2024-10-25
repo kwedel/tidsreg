@@ -14,7 +14,7 @@ from .cliutils import format_registration_for_cli
 from .exceptions import NotLoggedIn
 from .inspiration import OPMUNTRINGER
 from .models import Registration
-from .utils import registration_length, str_to_time
+from .utils import registration_length, str_to_time, today
 
 START_OF_DAY = datetime.time(8, 30)
 AVG_WORKDAY_HOURS = 7.4
@@ -139,17 +139,13 @@ def add(project, start, end, comment, dry_run) -> None:
     "-d",
     "--date",
     type=click.DateTime(formats=["%Y-%m-%d"]),
-    default=str(datetime.datetime.now(ZoneInfo("localtime").date())),
+    default=str(today()),
 )
 def show(date):
     """
     Show all current registrations
     """
-    name_of_date = (
-        "today"
-        if date.date() == datetime.datetime.now(ZoneInfo("localtime")).date()
-        else date.date()
-    )
+    name_of_date = "today" if date.date() == today() else date.date()
     with sync_playwright() as p:
         tr = TidsRegger(p, BROWSER_STATE)
         tr.goto_date(date.date())

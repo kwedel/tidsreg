@@ -1,4 +1,5 @@
 import datetime
+from zoneinfo import ZoneInfo
 
 from .models import Registration
 
@@ -34,3 +35,7 @@ def registration_length(reg: Registration) -> datetime.timedelta:
 
 def time_to_total_minutes(t: datetime.time) -> int:
     return t.hour * 60 + t.minute
+
+
+def today() -> datetime.date:
+    return datetime.datetime.now(ZoneInfo("localtime")).date()
