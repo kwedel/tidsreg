@@ -1,6 +1,7 @@
 import datetime
 import logging
 import subprocess
+import sys
 from pathlib import Path
 from random import choice
 from zoneinfo import ZoneInfo
@@ -53,7 +54,7 @@ def init() -> None:
     """
     click.echo("Installing chrome for playwright")
     try:
-        subprocess.run(["playwright", "install", "chrome"], check=True)  # noqa: S603, S607
+        subprocess.run([sys.executable, "-m", "playwright", "install"], check=True)  # noqa: S603
     except subprocess.CalledProcessError:
         click.echo("Chrome already installed")
 
